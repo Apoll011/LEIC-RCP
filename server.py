@@ -31,7 +31,7 @@ class HTTPServer:
     def __init__(
         self, 
         port: int = 80, 
-        path: str = "./web/"
+        path: str = "./web"
     ) -> None:
         self.path = path
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -66,7 +66,7 @@ class HTTPServer:
             line = stream.readline().decode()
         
         if path == "/":
-            path = "index.html"
+            path = "/index.html"
 
         return request_type, path, headers
 
