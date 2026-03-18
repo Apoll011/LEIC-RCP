@@ -34,7 +34,7 @@ class HTTPServer:
         return os.path.exists(path)
 
     #./web/index.html, ./web/icon.png
-    def response(self, path) -> str:
+    def response(self, path):
         extensao = path.split(".")[-1]
 
         content_types = {
@@ -61,14 +61,16 @@ class HTTPServer:
         Content-Length: 128
         Connection: close
 
-        <!DOCTYPE html>
-        <html>
-        <body>
-            <h1>Olá, Mundo!</h1>
-            <p>Esta é uma resposta do servidor.</p>
-        </body>
-        </html>
+       
         """
+
+        headers = {
+            "Content-Type": content_type,
+            "Content-Length": os.path.getsize(path),
+            "Connection": "close"
+        }
+
+        return headers, open(path, "rb").read()
 
     def __enter__(self) -> 'HTTPServer':
         return self
