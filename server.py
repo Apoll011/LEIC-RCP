@@ -46,7 +46,7 @@ class HTTPServer:
         type, path, headers = self.parse_request(stream)
 
     def response(code, headers, content):
-        
+        ...
 
     def exists(self,path):
         return os.path.exists(path)
