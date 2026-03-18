@@ -9,6 +9,24 @@ http_responses = {
     501: "HTTP/1.1 501 Not Implemented"
 }
 
+content_types = {
+    "html": "text/html",
+    "css": "text/css",
+    "js": "text/javascript",
+    "json": "application/json",
+    "png": "image/png",    
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "gif": "image/gif",
+    "svg": "image/svg+xml",
+    "pdf": "application/pdf",
+    "zip": "application/zip",
+    "mp3": "audio/mpeg",
+    "mp4": "video/mp4",
+    "txt": "text/plain"
+}
+
+
 class HTTPServer:
     def __init__(
         self, 
@@ -67,22 +85,6 @@ class HTTPServer:
     def response(self, path):
         extensao = path.split(".")[-1]
 
-        content_types = {
-            "html": "text/html",
-            "css": "text/css",
-            "js": "text/javascript",
-            "json": "application/json",
-            "png": "image/png",    
-            "jpg": "image/jpeg",
-            "jpeg": "image/jpeg",
-            "gif": "image/gif",
-            "svg": "image/svg+xml",
-            "pdf": "application/pdf",
-            "zip": "application/zip",
-            "mp3": "audio/mpeg",
-            "mp4": "video/mp4",
-            "txt": "text/plain"
-        }
 
         content_type = content_types[extensao]
         """
