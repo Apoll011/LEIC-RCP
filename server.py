@@ -3,10 +3,10 @@ import os
 import socket
 
 http_responses = {
-    200: "HTTP/1.1 200 OK",
-    404: "HTTP/1.1 404 Not Found",
-    500: "HTTP/1.1 500 Internal Server Error",
-    501: "HTTP/1.1 501 Not Implemented"
+    200: "OK",
+    404: "Not Found",
+    500: "Internal Server Error",
+    501: "Not Implemented"
 }
 
 content_types = {
@@ -79,8 +79,6 @@ class HTTPServer:
 
         full_path = self.path + path
 
-        print(full_path)
-
         if not self.exists(full_path):
             self.not_found(response_stream, path)
             return
@@ -131,7 +129,6 @@ class HTTPServer:
     def response(self, path):
         extensao = path.split(".")[-1]
 
-
         content_type = content_types[extensao]
 
         headers = {
@@ -140,7 +137,10 @@ class HTTPServer:
             "Connection": "close"
         }
 
-        return headers, open(path, "rb").read()
+        with open(path, "rb") as file:
+            content = file.read()
+
+        return headers, content
 
     def __enter__(self) -> 'HTTPServer':
         return self
