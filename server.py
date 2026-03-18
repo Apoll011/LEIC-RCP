@@ -1,4 +1,5 @@
 import io
+import os
 import socket
 
 class HTTPServer:
@@ -28,6 +29,46 @@ class HTTPServer:
 
     def handle(self, request_stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
         ...
+
+    def exists(self,path):
+        return os.path.exists(path)
+
+    #./web/index.html, ./web/icon.png
+    def response(self, path) -> str:
+        extensao = path.split(".")[-1]
+
+        content_types = {
+            "html": "text/html",
+            "css": "text/css",
+            "js": "text/javascript",
+            "json": "application/json",
+            "png": "image/png",    
+            "jpg": "image/jpeg",
+            "jpeg": "image/jpeg",
+            "gif": "image/gif",
+            "svg": "image/svg+xml",
+            "pdf": "application/pdf",
+            "zip": "application/zip",
+            "mp3": "audio/mpeg",
+            "mp4": "video/mp4",
+            "txt": "text/plain"
+        }
+
+        content_type = content_types[extensao]
+        """
+        HTTP/1.1 200 OK
+        Content-Type: text/html; charset=UTF-8
+        Content-Length: 128
+        Connection: close
+
+        <!DOCTYPE html>
+        <html>
+        <body>
+            <h1>Olá, Mundo!</h1>
+            <p>Esta é uma resposta do servidor.</p>
+        </body>
+        </html>
+        """
 
     def __enter__(self) -> 'HTTPServer':
         return self
