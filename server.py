@@ -2,6 +2,13 @@ import io
 import os
 import socket
 
+http_responses = {
+    200: "HTTP/1.1 200 OK",
+    404: "HTTP/1.1 404 Not Found",
+    500: "HTTP/1.1 500 Internal Server Error",
+    501: "HTTP/1.1 501 Not Implemented"
+}
+
 class HTTPServer:
     def __init__(
         self, 
@@ -45,8 +52,13 @@ class HTTPServer:
     def handle(self, stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
         type, path, headers = self.parse_request(stream)
 
-    def response(code, headers, content):
-        ...
+    def send_to_client(self, write_stream: io.BufferedIOBase, code, headers, content):
+        headers_str = "".join([f"{key}: {value}\r\n" for key, value in headers.items()])
+
+        content = f"HTTP/1.1 {code} {http_responses}\r\n{headers_str}\r\n\r\n{content}"
+
+        write_stream.write(content)
+        write_stream.flush()
 
     def exists(self,path):
         return os.path.exists(path)
