@@ -87,14 +87,6 @@ class HTTPServer:
 
 
         content_type = content_types[extensao]
-        """
-        HTTP/1.1 200 OK
-        Content-Type: text/html; charset=UTF-8
-        Content-Length: 128
-        Connection: close
-
-       
-        """
 
         headers = {
             "Content-Type": content_type,
