@@ -27,8 +27,26 @@ class HTTPServer:
                     response_stream=response_stream
                 )
 
-    def handle(self, request_stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
-        ...
+    def parse_request(self, stream: io.BufferedIOBase):
+        request = stream.readline().decode().rstrip('\r\n')
+
+        request_type = request.split(' ')[0]
+        path = request.split(' ')[1]
+
+        headers = {} 
+        line = self.stream.readline().decode()
+        while line not in ('\r\n', '\n', '\r', ''):
+            header = line.rstrip('\r\n').split(': ')
+            headers[header[0]] = header[1]
+            line = self.stream.readline().decode()
+        
+        return request_type, path, headers
+
+    def handle(self, stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
+        type, path, headers = self.parse_request(stream)
+
+    def response(code, headers, content):
+        
 
     def exists(self,path):
         return os.path.exists(path)
