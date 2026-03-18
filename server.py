@@ -31,7 +31,7 @@ class HTTPServer:
     def __init__(
         self, 
         port: int = 80, 
-        path: str = "./web"
+        path: str = "./web/"
     ) -> None:
         self.path = path
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,7 +48,7 @@ class HTTPServer:
                 request_stream = conn.makefile('rb')
                 response_stream = conn.makefile('wb')
                 self.handle(
-                    request_stream=request_stream,
+                    stream=request_stream,
                     response_stream=response_stream
                 )
 
@@ -59,23 +59,69 @@ class HTTPServer:
         path = request.split(' ')[1]
 
         headers = {} 
-        line = self.stream.readline().decode()
+        line = stream.readline().decode()
         while line not in ('\r\n', '\n', '\r', ''):
             header = line.rstrip('\r\n').split(': ')
             headers[header[0]] = header[1]
-            line = self.stream.readline().decode()
+            line = stream.readline().decode()
         
+        if path == "/":
+            path = "index.html"
+
         return request_type, path, headers
 
     def handle(self, stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
         type, path, headers = self.parse_request(stream)
+        
+        if type != "GET":
+            self.not_implemented(response_stream)
+            return
 
-    def send_to_client(self, write_stream: io.BufferedIOBase, code, headers, content):
+        full_path = self.path + path
+
+        print(full_path)
+
+        if not self.exists(full_path):
+            self.not_found(response_stream, path)
+            return
+        
+        response_headers, content = self.response(full_path)
+        self.send_to_client(response_stream, 200, response_headers, content)
+
+    def not_found(self, write_stream: io.BufferedIOBase, path: str):
+                self.send_to_client(write_stream, 404, {
+            "Content-Type": "text/html; charset=UTF-8",
+            "Content-Length": 142 + len(path),
+            "Connection": "close"
+        }, bytes(f"""<html>
+  <head><title>404 Not Found</title></head>
+  <body>
+    <h1>Not Found</h1>
+    <p>O caminho {path} não foi encontrado.</p>
+  </body>
+</html>""", "utf-8"))
+    
+    def not_implemented(self, write_stream: io.BufferedIOBase): 
+        self.send_to_client(write_stream, 501, {
+            "Content-Type": "text/html; charset=UTF-8",
+            "Content-Length": 174,
+            "Connection": "close"
+        }, bytes("""
+<html>
+  <head><title>501 Not Implemented</title></head>
+  <body>
+    <h1>Not Implemented</h1>
+    <p>O método solicitado não é suportado pelo servidor.</p>
+  </body>
+</html>
+""", "utf-8"))
+        
+    def send_to_client(self, write_stream: io.BufferedIOBase, code: int, headers: dict[str, str|int], content: bytes):
         headers_str = "".join([f"{key}: {value}\r\n" for key, value in headers.items()])
 
-        content = f"HTTP/1.1 {code} {http_responses}\r\n{headers_str}\r\n\r\n{content}"
+        resp_content = f"HTTP/1.1 {code} {http_responses[code]}\r\n{headers_str}\r\n\r\n"
 
-        write_stream.write(content)
+        write_stream.write(bytes(resp_content, "utf-8") + content)
         write_stream.flush()
 
     def exists(self,path):
