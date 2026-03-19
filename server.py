@@ -117,7 +117,7 @@ class HTTPServer:
     def send_to_client(self, write_stream: io.BufferedIOBase, code: int, headers: dict[str, str|int], content: bytes):
         headers_str = "".join([f"{key}: {value}\r\n" for key, value in headers.items()])
 
-        resp_content = f"HTTP/1.1 {code} {http_responses[code]}\r\n{headers_str}\r\n\r\n"
+        resp_content = f"HTTP/1.1 {code} {http_responses[code]}\r\n{headers_str}\r\n"
 
         write_stream.write(bytes(resp_content, "utf-8") + content)
         write_stream.flush()
