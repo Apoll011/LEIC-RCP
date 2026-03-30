@@ -36,7 +36,7 @@ class HTTPServer:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)     # Define a conexção como TCP
         self.sock.bind(('0.0.0.0', port))                                   # A conexcao faz bind na porta pedida
 
-        self.sock.listen()                                                  # COmeça a escutar por pedidos de conexção
+        self.sock.listen()                                                  # Começa a escutar por pedidos de conexção
 
     def loop(self) -> None:
         while True:
@@ -52,29 +52,43 @@ class HTTPServer:
                 conn.close()
 
     def parse_request(self, stream: io.BufferedIOBase):
-        request = stream.readline().decode().rstrip('\r\n').split(' ')
+        request = stream.readline().decode().rstrip('\r\n').split(' ')      # Lé a primeira linha, e separa as palavras
 
-        request_type = request[0]
+        request_type = request[0]                                           # Tipo do pedido
         path = request[1]
 
-        headers = {} 
+        headers = {}                                                       #  Salva os Headers recebidos
         line = stream.readline().decode()
         while line not in ('\r\n', '\n', '\r', ''):
             header = line.rstrip('\r\n').split(': ')
             headers[header[0]] = header[1]
             line = stream.readline().decode()
         
-        full_path = self.base_path + path
+        full_path = self.base_path + path                                 # Corrige o caminho do arquivo
 
         if (os.path.isdir(full_path)):
             full_path += "/index.html"
 
         return request_type, full_path, headers
 
+    def handle(self, stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
+        type, path, _ = self.parse_request(stream)                      # Trabaha com o pedido do cliente
+        
+        if type != "GET":
+            self.not_implemented(response_stream)                       # 501 Not impleemnted
+            return
+        
+        if not os.path.exists(path):
+            self.not_found(response_stream, path)                       # 404 Not Found
+            return
+        
+        response_headers, content = self.build_response(path)           # Ler o arequivo e cria a resposta
+        self.send_to_client(response_stream, 200, response_headers, content)    # Envia a resposta para o cliente
+
     def build_response(self, path):
         extensao = path.split(".")[-1]
 
-        content_type = content_types[extensao]
+        content_type = content_types.get(extensao, "application/octet-stream")
 
         headers = {
             "Content-Type": content_type,
@@ -87,20 +101,6 @@ class HTTPServer:
 
         return headers, content
 
-
-    def handle(self, stream: io.BufferedIOBase, response_stream: io.BufferedIOBase):
-        type, path, _ = self.parse_request(stream)
-        
-        if type != "GET":
-            self.not_implemented(response_stream)
-            return
-        
-        if not os.path.exists(path):
-            self.not_found(response_stream, path)
-            return
-        
-        response_headers, content = self.build_response(path)
-        self.send_to_client(response_stream, 200, response_headers, content)
 
     def not_found(self, write_stream: io.BufferedIOBase, path: str):
                 self.send_to_client(write_stream, 404, {
@@ -146,11 +146,11 @@ class HTTPServer:
 """, "utf-8"))
         
     def send_to_client(self, write_stream: io.BufferedIOBase, code: int, headers: dict[str, str|int], content: bytes):
-        headers_str = "".join([f"{key}: {value}\r\n" for key, value in headers.items()])
+        headers_str = "".join([f"{key}: {value}\r\n" for key, value in headers.items()])    # Converte os headers em uma string
 
-        resp_content = f"HTTP/1.1 {code} {http_responses[code]}\r\n{headers_str}\r\n"
+        resp_content = f"HTTP/1.1 {code} {http_responses[code]}\r\n{headers_str}\r\n"       # Cria a resposta
 
-        write_stream.write(bytes(resp_content, "utf-8") + content)
+        write_stream.write(bytes(resp_content, "utf-8") + content)                          # Envia a resposta para o cliente
         write_stream.flush()
 
     def close(self, *args) -> None:
