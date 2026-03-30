@@ -157,7 +157,7 @@ class HTTPServer:
         self.sock.close()
 
 if __name__ == "__main__":
-    server = HTTPServer(8100)
+    server = HTTPServer(8110)
     try:
         server.loop()
     except KeyboardInterrupt:
